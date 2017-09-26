@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: VPC Template
+
+Parameters:
+  Prefix:
+    Type: String
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['alb', !Ref Prefix]]
+
+  IGW:
+    Type: "AWS::EC2::InternetGateway"
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['igw', !Ref Prefix]]
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['rtb', !Ref Prefix, 'web']]
+
+  IGWRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IGW
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+          
+  SubnetPublic1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Ref AWS::Region
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['sb', !Ref Prefix, 'public1a']]
+  SubnetPublic1aRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublic1a
+      RouteTableId: !Ref RouteTable
+
+  SubnetPublic1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Ref AWS::Region
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['sb', !Ref Prefix, 'public1c']]
+  SubnetPublic1cRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublic1c
+      RouteTableId: !Ref RouteTable
+
+Outputs:
+  VPCId:
+    Value: !Ref VPC
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'VPCId']]
+
+  SubnetPublic1aId:
+    Value: !Ref SubnetPublic1a
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'SubnetPublic1a']]
+      
+  SubnetPublic1cId:
+    Value: !Ref SubnetPublic1c
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'SubnetPublic1c']]

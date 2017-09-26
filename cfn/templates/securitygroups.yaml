@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Security Groups Template
+
+Parameters:
+  Prefix:
+    Type: String
+
+  VPCId:
+    Type: String
+  # AllowIPs:
+  #   Type: CommaDelimitedList
+
+Resources:
+  EC2WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupName: !Join ['-' ,[!Ref Prefix, 'ec2web']]
+      GroupDescription: !Join ['-' ,[!Ref Prefix, 'ec2web']]
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['sg', !Ref Prefix, 'web']]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          CidrIp: 0.0.0.0/0
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPCId
+      GroupName: !Join ['-' ,[!Ref Prefix, 'alb']]
+      GroupDescription: !Join ['-' ,[!Ref Prefix, 'alb']]
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['sg', !Ref Prefix, 'alb']]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  EC2WebSGId:
+    Value: !GetAtt EC2WebSecurityGroup.GroupId
+  ALBSGId:
+    Value: !GetAtt ALBSecurityGroup.GroupId

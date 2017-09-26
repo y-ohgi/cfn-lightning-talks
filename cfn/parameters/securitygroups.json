@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "Prefix",
+    "ParameterValue": "test"
+  },
+  {
+    "ParameterKey": "VPCId",
+    "ParameterValue": "vpc-e899bf8c"
+  }
+]

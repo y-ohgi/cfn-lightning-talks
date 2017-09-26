@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: WAF Template
+
+Parameters:
+  Prefix:
+    Type: String
+  ALBArn:
+    Type: String
+
+Resources:
+  SQLInjectionSet:
+    Type: AWS::WAFRegional::SqlInjectionMatchSet
+    Properties:
+      Name: !Join ['-', [!Ref Prefix, 'SQLiSet']]
+      SqlInjectionMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: HEADER
+            Data: cookie
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: HEADER
+            Data: cookie
+          TextTransformation: HTML_ENTITY_DECODE        
+
+  XSSSet:
+    Type: AWS::WAFRegional::XssMatchSet
+    Properties:
+      Name: !Join ['-', [!Ref stackPrefix, 'XSSSet']]
+      XssMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: HEADER
+            Data: cookie
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: HEADER
+            Data: cookie
+          TextTransformation: HTML_ENTITY_DECODE
+
+  DirectoryTraversalSet:
+    Type: AWS::WAFRegional::ByteMatchSet
+    Properties:
+      Name: !Join ['-', [!Ref Prefix, 'DirectoryTraversalSet']]
+      ByteMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          PositionalConstraint: CONTAINS
+          TargetString: ../
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: URI
+          PositionalConstraint: CONTAINS
+          TargetString: ../
+          TextTransformation: HTML_ENTITY_DECODE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          PositionalConstraint: CONTAINS
+          TargetString: ../
+          TextTransformation: URL_DECODE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          PositionalConstraint: CONTAINS
+          TargetString: ../
+          TextTransformation: HTML_ENTITY_DECODE
+  
+
+  SQLInjectionRule:
+    Type: AWS::WAFRegional::Rule
+    Properties:
+      MetricName: !Join ['', [!Ref Prefix, 'sqliwafrule']]
+      Name: !Join ['-', [!Ref Prefix, 'sqli', 'wafrule']]
+      Predicates:
+        - Type: SqlInjectionMatch
+          Negated: false
+          DataId: !Ref SQLInjectionSet
+
+  XSSRule:
+    Type: AWS::WAFRegional::Rule
+    Properties:
+      MetricName: !Join ['', [!Ref Prefix, 'xsswafrule']]
+      Name: !Join ['-', [!Ref Prefix, 'xss', 'wafrule']]
+      Predicates:
+        - Type: XSSMatch
+          Negated: false
+          DataId: !Ref XSSSet
+
+  DirectoryTraversalRule:
+    Type: AWS::WAFRegional::Rule
+    Properties:
+      MetricName: !Join ['', [!Ref Prefix, 'dtwafrule']]
+      Name: !Join ['-', [!Ref Prefix, 'dt', 'wafrule']]
+      Predicates:
+        - Type: ByteMatch
+          Negated: false
+          DataId: !Ref DirectoryTraversalSet
+
+  WebACL:
+    Type: AWS::WAF::WebACL
+    Properties: 
+      DefaultAction: ALLOW
+      MetricName: !Join ['', [!Ref Prefix, 'webacl']]
+      Name: !Join ['-', [!Ref Prefix, 'webacl']]
+      Rules:
+        - Action: 
+            Type: BLOCK
+          Priority: 10
+          RuleId: !Ref SQLInjectionRule
+        - Action: 
+            Type: BLOCK
+          Priority: 20
+          RuleId: !Ref XSSRule
+        - Action: 
+            Type: BLOCK
+          Priority: 30
+          RuleId: !Ref DirectoryTraversalRule
+
+  WebACLAssociation:
+    Type: AWS::WAFRegional::WebACLAssociation
+    Properties:
+      ResourceArn: !Ref ALBArn
+      WebACLId: !Ref WebACL
