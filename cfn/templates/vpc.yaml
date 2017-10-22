@@ -4,12 +4,27 @@ Description: VPC Template
 Parameters:
   Prefix:
     Type: String
-
+  VPCCidr:
+    Type: String
+    Default: 10.0.0.0/16
+  SubnetPublic1aCidr:
+    Type: String
+    Default: 10.0.1.0/24
+  SubnetPublic1cCidr:
+    Type: String
+    Default: 10.0.2.0/24
+  SubnetPrivate1aCidr:
+    Type: String
+    Default: 10.0.101.0/24
+  SubnetPrivate1cCidr:
+    Type: String
+    Default: 10.0.102.0/24
+    
 Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/16
+      CidrBlock: !Ref VPCCidr
       EnableDnsSupport: 'true'
       EnableDnsHostnames: 'true'
       InstanceTenancy: default
@@ -24,7 +39,7 @@ Resources:
         - Key: Name
           Value: !Join ['-', ['igw', !Ref Prefix]]
 
-  RouteTable:
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
@@ -36,7 +51,7 @@ Resources:
     Type: AWS::EC2::Route
     DependsOn: IGW
     Properties:
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref IGW
           
@@ -44,7 +59,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: 10.0.1.0/24
+      CidrBlock: !Ref SubnetPublic1aCidr
       AvailabilityZone: !Ref AWS::Region
       Tags:
         - Key: Name
@@ -53,13 +68,13 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref SubnetPublic1a
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref PublicRouteTable
 
   SubnetPublic1c:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: 10.0.2.0/24
+      CidrBlock: !Ref SubnetPublic1cCidr
       AvailabilityZone: !Ref AWS::Region
       Tags:
         - Key: Name
@@ -68,7 +83,27 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref SubnetPublic1c
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref PublicRouteTable
+
+  SubnetPrivate1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetPrivate1aCidr
+      AvailabilityZone: !Ref AWS::Region
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['sb', !Ref Prefix, 'private1a']]
+
+  SubnetPrivate1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetPrivate1cCidr
+      AvailabilityZone: !Ref AWS::Region
+      Tags:
+        - Key: Name
+          Value: !Join ['-', ['sb', !Ref Prefix, 'private1c']]
 
 Outputs:
   VPCId:
@@ -80,8 +115,16 @@ Outputs:
     Value: !Ref SubnetPublic1a
     Export:
       Name: !Join ['-', [!Ref Prefix, 'SubnetPublic1a']]
-      
   SubnetPublic1cId:
     Value: !Ref SubnetPublic1c
     Export:
       Name: !Join ['-', [!Ref Prefix, 'SubnetPublic1c']]
+
+  SubnetPrivate1aId:
+    Value: !Ref SubnetPrivate1a
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'SubnetPrivate1a']]
+  SubnetPrivate1cId:
+    Value: !Ref SubnetPrivate1c
+    Export:
+      Name: !Join ['-', [!Ref Prefix, 'SubnetPrivate1c']]
