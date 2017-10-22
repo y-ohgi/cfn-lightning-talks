@@ -3,13 +3,18 @@
 
 TARGET=$1
 ACTION=$2
-
+PREFIX=$3
 BUCKET=ohgi-cfn
-aws s3 sync ./stack s3://${BUCKET}/stack
+
+if [ "${PREFIX}" = "" ] ; then
+    PREFIX=develop
+fi
+
+
 aws s3 sync ./templates s3://${BUCKET}/templates
 
 aws cloudformation ${ACTION}-stack \
-    --stack-name hoge \
+    --stack-name ${PREFIX}-${TARGET} \
     --template-url https://s3-ap-northeast-1.amazonaws.com/${BUCKET}/templates/${TARGET}.yaml \
-    --parameters file://parameters/securitygroups.json
+    --parameters file://parameters/${TARGET}.json
 #    --capabilities CAPABILITY_IAM

@@ -30,7 +30,7 @@ Resources:
       InstanceTenancy: default
       Tags:
         - Key: Name
-          Value: !Join ['-', ['alb', !Ref Prefix]]
+          Value: !Join ['-', ['vpc', !Ref Prefix]]
 
   IGW:
     Type: "AWS::EC2::InternetGateway"
@@ -47,9 +47,15 @@ Resources:
         - Key: Name
           Value: !Join ['-', ['rtb', !Ref Prefix, 'web']]
 
+  AttachGatewayToVPC:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref IGW
+      VpcId: !Ref VPC
+          
   IGWRoute:
     Type: AWS::EC2::Route
-    DependsOn: IGW
+    DependsOn: AttachGatewayToVPC
     Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
@@ -60,7 +66,10 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref SubnetPublic1aCidr
-      AvailabilityZone: !Ref AWS::Region
+      AvailabilityZone: !Join
+        - ''
+        - - !Ref AWS::Region
+          - 'a'
       Tags:
         - Key: Name
           Value: !Join ['-', ['sb', !Ref Prefix, 'public1a']]
@@ -75,7 +84,10 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref SubnetPublic1cCidr
-      AvailabilityZone: !Ref AWS::Region
+      AvailabilityZone: !Join
+        - ''
+        - - !Ref AWS::Region
+          - 'c'
       Tags:
         - Key: Name
           Value: !Join ['-', ['sb', !Ref Prefix, 'public1c']]
@@ -90,7 +102,10 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref SubnetPrivate1aCidr
-      AvailabilityZone: !Ref AWS::Region
+      AvailabilityZone: !Join
+        - ''
+        - - !Ref AWS::Region
+          - 'a'
       Tags:
         - Key: Name
           Value: !Join ['-', ['sb', !Ref Prefix, 'private1a']]
@@ -100,7 +115,10 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref SubnetPrivate1cCidr
-      AvailabilityZone: !Ref AWS::Region
+      AvailabilityZone: !Join
+        - ''
+        - - !Ref AWS::Region
+          - 'c'
       Tags:
         - Key: Name
           Value: !Join ['-', ['sb', !Ref Prefix, 'private1c']]

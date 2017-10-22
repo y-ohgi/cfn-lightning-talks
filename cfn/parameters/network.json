@@ -1,0 +1,26 @@
+[
+  {
+    "ParameterKey": "Prefix",
+    "ParameterValue": "test"
+  },
+  {
+    "ParameterKey": "VPCCidr",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "SubnetPublic1aCidr",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "SubnetPublic1cCidr",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "SubnetPrivate1aCidr",
+    "ParameterValue": "10.0.101.0/24"
+  },
+  {
+    "ParameterKey": "SubnetPrivate1cCidr",
+    "ParameterValue": "10.0.102.0/24"
+  }
+]
