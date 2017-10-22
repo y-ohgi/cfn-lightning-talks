@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "Prefix",
+    "ParameterValue": "test"
+  },
+  {
+    "ParameterKey": "VPCId",
+    "ParameterValue": "vpc-xxxxxxx"
+  },
+  {
+    "ParameterKey": "SubnetPublic1a",
+    "ParameterValue": "subnet-xxxxxx"
+  },
+  {
+    "ParameterKey": "SubnetPublic1c",
+    "ParameterValue": "subnet-xxxxxxx"
+  }
+]

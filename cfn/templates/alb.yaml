@@ -1,10 +1,90 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: WAF Template
+Description: ALB Template
 
 Parameters:
   Prefix:
     Type: String
+  VPCId:
+    Type: String
+  SubnetPublic1a:
+    Type: String
+  SubnetPublic1c:
+    Type: String
 
 Resources:
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Join ['-', ['tg', !Ref Prefix]]
+      VpcId: !Ref VPCId
+      # HealthCheck
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: '/'
+      HealthCheckPort: '80'
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+      # Routing
+      #XXX: トラフィックポートの場合は 'traffic-port'
+      Port: '80'
+      Protocol: HTTP
+      TargetType: 'instance'
+      TargetGroupAttributes:
+        # ターゲットの登録解除までの待機時間
+        - Key: 'deregistration_delay.timeout_seconds'
+          Value: 300
+      
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: 'application'
+      Name: !Join ['-', ['alb', !Ref Prefix]]
+      IpAddressType: 'ipv4'
+      Scheme: 'internet-facing'
+      Subnets:
+        - !Ref SubnetPublic1a
+        - !Ref SubnetPublic1c
+      # MEMO:
+      #   LoadBalancerAttributesはLBのログの保存・削除保護・アイドルタイムアウトの設定を行う事が可能
+      # 参考:
+      #   ドキュメント
+      #     http://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/APIReference/API_LoadBalancerAttribute.html
+      #     http://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/application-load-balancers.html#load-balancer-attributes
+      #   アイドルタイムアウトについて(CLB)
+      #     http://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/classic/config-idle-timeout.html
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: 140
+      
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      # Certificates: !Ref ACMArn
+      DefaultActions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref ALB
+      Port: '80'
+      Protocol: 'HTTP'
+      # http://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/create-https-listener.html
+      # SslPolicy: 'ELBSecurityPolicy-2016-08'
   
+#  ListenerRule:
+#    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+#    Properties:
+#      Actions:
+#        - Type: 'forward'
+#          TargetGroupArn: !Ref TargetGroup
+#      # MEMO:
+#      #   リスナーの条件
+#      # 参考:
+#      #   http://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/APIReference/API_RuleCondition.html
+#      Conditions:
+#        - Field: 'path-pattern'
+#          Values: ['/img/*']
+#      ListenerArn: !Ref ALBListener
+#      Priority: 10
         
