@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EC2 Template
+
+Parameters:
+  ImageId:
+    Type: String
+    # https://aws.amazon.com/jp/amazon-linux-ami/
+    Default: 'ami-2a69be4c'
+  InstanceType:
+    Type: String
+    Default: 't2.micro'
+  KeyName:
+    Type: String
+  SecurityGroupId:
+    Type: String
+  SubnetId:
+    Type: String
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    # 各種パラメータの参考: http://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/launching-instance.html
+    Properties:
+      # AMI
+      ImageId: !Ref ImageId
+      # インスタンスタイプ
+      InstanceType: !Ref InstanceType
+      # キーペア
+      KeyName: !Ref KeyName
+      # 詳細モニタリング
+      Monitoring: false
+  
+      # ユーザーデータ
+      UserData: !Ref AWS::NoValue
+      
+      # http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-ssm-document.html
+      # SsmAssociations: ''
+      
+      # APIからの削除保護
+      DisableApiTermination: false
+      # OSからshutdownリクエストが送られた時、停止するか削除するかの指定
+      InstanceInitiatedShutdownBehavior: 'stop'
+      # 専用ホストの設定
+      # Affinity: 'default'
+      # ハードウェアの専有設定
+      #   http://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/dedicated-instance.html
+      # Tenancy: 'default'
+  
+      ##########
+      #=== Network
+      # Subnet
+      SubnetId: !Ref SubnetId
+      # セキュリティグループ
+      SecurityGroupIds:
+        - !Ref SecurityGroupId
+      # インスタンスに直にGIP付与の設定
+      NetworkInterfaces: !Ref AWS::NoValue
+      # プレイスメントグループ（クラスターインスタンス）
+      #   同一AZ内でのネットワークの最適化
+      #   参考: https://aws.amazon.com/jp/ec2/faqs/
+      PlacementGroupName: !Ref AWS::NoValue
+      # プライベートIPアドレス
+      #   サブネットに所属している場合、そのレンジからIP指定して割り当てる事が可能
+      PrivateIpAddress: !Ref AWS::NoValue
+      # 送信元/送信先チェック
+      #   NATの設定する時に無効にする必要有り
+      SourceDestCheck: true
+      
+      ##########
+      #=== EBS
+      #= TODO: ブートボリュームの設定を調べる
+      # インスタンスに既存のEBSをアタッチする
+      Volumes: !Ref AWS::NoValue
+      # EBS最適化。インスタンスによってデフォルトでON
+      #   http://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/EBSOptimized.html
+      EbsOptimized: !Ref AWS::NoValue
+      # EBSの新規作成とアタッチ
+      #   http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-blockdev-mapping.html
+      BlockDeviceMappings:
+        - DeviceName: '/dev/sdm'
+          Ebs:
+            # インスタンス終了後にボリュームを削除するかどうか
+            DeleteOnTermination: true
+            # ボリュームの暗号化設定
+            Encrypted: false
+            # スナップショットID
+            SnapshotId: !Ref AWS::NoValue
+            # ボリュームタイプ
+            #   standard: 旧世代ボリューム
+            #                1 - 1,024GB
+            #                $0.05/GB/m + IOPS代
+            #   io1     : プロビジョンドIOPS SSD。IOPSの指定が可能
+            #                500 - 16,384GB
+            #                $0.125/GB/m + IOPS代
+            #   gp2     : 凡用SSD
+            #                1 - 16,384GB
+            #                ($0.10/GB/m)
+            #   sc1     : スループット最適化HDD。低コストで高速スループット
+            #                500 - 16,384GB
+            #                ($0.045/GB/m)
+            #   st1     : Cloud HDD。アクセス頻度の低いデータ向け
+            #                500 - 16,384GB
+            #                ($0.025/GB/m)
+            #     http://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/EBSVolumeTypes.html
+            VolumeType: 'gp2'
+            # IOPSの設定。VolumeTypeがio1の時に必須。100 ~ 20,000
+            # Iops: 100
+            # ボリュームサイズ
+            VolumeSize: '20'
+      
