@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "Prefix",
+    "ParameterValue": "test"
+  },
+  {
+    "ParameterKey": "VPCId",
+    "ParameterValue": "vpc-e4f3ee80"
+  },
+  {
+    "ParameterKey": "InstanceId",
+    "ParameterValue": "i-06e17008824459dd2"
+  },
+  {
+    "ParameterKey": "ALBArn",
+    "ParameterValue": "arn:aws:elasticloadbalancing:ap-northeast-1:856925507022:loadbalancer/app/alb-test/714efac8433adb96"
+  }
+]

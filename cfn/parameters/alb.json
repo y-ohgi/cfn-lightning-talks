@@ -5,14 +5,14 @@
   },
   {
     "ParameterKey": "VPCId",
-    "ParameterValue": "vpc-xxxxxxx"
+    "ParameterValue": "vpc-e4f3ee80"
   },
   {
     "ParameterKey": "SubnetPublic1a",
-    "ParameterValue": "subnet-xxxxxx"
+    "ParameterValue": "subnet-01299e48"
   },
   {
     "ParameterKey": "SubnetPublic1c",
-    "ParameterValue": "subnet-xxxxxxx"
+    "ParameterValue": "subnet-def11f85"
   }
 ]
