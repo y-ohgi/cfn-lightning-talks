@@ -32,12 +32,12 @@ Resources:
       #XXX: トラフィックポートの場合は 'traffic-port'
       Port: '80'
       Protocol: HTTP
-      TargetType: 'instance'
       TargetGroupAttributes:
         # ターゲットの登録解除までの待機時間
         - Key: 'deregistration_delay.timeout_seconds'
           Value: 300
       # 紐付ける対象インスタンスの指定
+      TargetType: 'instance'
       Targets:
         - Id: !Ref InstanceId
           Port: 80
